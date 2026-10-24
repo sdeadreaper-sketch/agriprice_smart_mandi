@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AGRIPrice — Smart Mandi Price Comparison & AI Insights</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            agri: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              300: '#86efac',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+              950: '#052e16',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    /* Agri background (background only, no layout impact) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320' preserveAspectRatio='none'%3E%3Cpath fill='%2386efac' fill-opacity='.45' d='M0 120c240-70 480-70 720-10s480 60 720-10v220H0z'/%3E%3Cpath fill='%234ade80' fill-opacity='.40' d='M0 180c260-60 500-40 740 0s460 40 700-20v160H0z'/%3E%3Cpath fill='%2316a34a' fill-opacity='.35' d='M0 240c300-40 520-20 760 10s440 20 680-20v90H0z'/%3E%3C/svg%3E") bottom / 100% 42vh no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='180' viewBox='0 0 140 180'%3E%3Cg fill='none' stroke='%2316a34a' stroke-width='2' stroke-linecap='round' opacity='.16'%3E%3Cpath d='M35 175V70'/%3E%3Cpath d='M35 70c-9-6-9-16 0-22 9 6 9 16 0 22zM35 52c-9-6-9-16 0-22 9 6 9 16 0 22zM35 34c-8-5-8-14 0-19 8 5 8 14 0 19z'/%3E%3Cpath d='M35 82c-12-4-18-12-18-22 12 2 18 10 18 22zM35 82c12-4 18-12 18-22-12 2-18 10-18 22z'/%3E%3Cpath d='M105 135V30'/%3E%3Cpath d='M105 30c-9-6-9-16 0-22 9 6 9 16 0 22zM105 48c-9-6-9-16 0-22 9 6 9 16 0 22zM105 66c-8-5-8-14 0-19 8 5 8 14 0 19z'/%3E%3Cpath d='M105 78c-12-4-18-12-18-22 12 2 18 10 18 22zM105 78c12-4 18-12 18-22-12 2-18 10-18 22z'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 140px 180px repeat,
+    linear-gradient(180deg, #ecfccb 0%, #f0fdf4 45%, #dcfce7 100%);
+}
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(229, 231, 235, 0.8);
+    }
+    .glass-nav {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="h-full font-sans text-slate-800 antialiased selection:bg-agri-500 selection:text-white flex flex-col">
+
+  <!-- Toast Notification System -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Main Navigation Header -->
+  <header class="glass-nav sticky top-0 z-40 border-b border-slate-200/80 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Brand Logo -->
+        <div class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-agri-500 to-agri-700 flex items-center justify-center text-white shadow-lg shadow-agri-600/30 font-extrabold text-xl">
+            🌾
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-agri-900 via-agri-700 to-agri-600 bg-clip-text text-transparent">AGRIPrice</span>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-agri-100 text-agri-800 border border-agri-200">Mandi Pro</span>
+            </div>
+            <p class="text-xs text-slate-500 hidden sm:block">Smart Mandi Price Comparison & AI Arbitrage Engine</p>
+          </div>
+        </div>
+
+        <!-- Desktop Navigation Tabs -->
+        <nav class="hidden md:flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200">
+          <button onclick="switchTab('comparison')" id="nav-comparison" class="tab-btn flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all text-agri-800 bg-white shadow-sm">
+            <i data-lucide="layout-grid" class="w-4 h-4"></i>
+            <span>Price Comparison</span>
+          </button>
+          <button onclick="switchTab('trends')" id="nav-trends" class="tab-btn flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all text-slate-600 hover:text-slate-900">
+            <i data-lucide="trending-up" class="w-4 h-4"></i>
+            <span>Trends & AI Insights</span>
+          </button>
+          <button onclick="switchTab('alerts')" id="nav-alerts" class="tab-btn flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all text-slate-600 hover:text-slate-900 relative">
+            <i data-lucide="bell" class="w-4 h-4"></i>
+            <span>Price Alerts</span>
+            <span id="navAlertBadge" class="ml-1 px-1.5 py-0.2 text-[10px] font-bold bg-amber-500 text-white rounded-full">3</span>
+          </button>
+          <button onclick="switchTab('profile')" id="nav-profile" class="tab-btn flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all text-slate-600 hover:text-slate-900">
+            <i data-lucide="user" class="w-4 h-4"></i>
+            <span>Farmer Profile</span>
+          </button>
+          <button onclick="switchTab('system')" id="nav-system" class="tab-btn flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all text-slate-600 hover:text-slate-900">
+            <i data-lucide="activity" class="w-4 h-4"></i>
+            <span>System Status</span>
+          </button>
+        </nav>
+
+        <!-- Right Quick Actions -->
+        <div class="flex items-center gap-3">
+          
+
+          <!-- User Quick Profile Pill -->
+          <div class="flex items-center gap-2 pl-2 border-l border-slate-200">
+            <div class="w-8 h-8 rounded-full bg-agri-100 text-agri-700 flex items-center justify-center ring-2 ring-agri-500/30" aria-label="Rajesh Kumar"><i data-lucide="user" class="w-4 h-4"></i></div>
+            <div class="hidden sm:block text-left leading-tight">
+              <div class="text-xs font-bold text-slate-900">Rajesh Kumar</div>
+              <div class="text-[10px] text-slate-500">Ludhiana, PB</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Mobile Sub-navigation Bar -->
+    <div class="md:hidden border-t border-slate-200 bg-white px-2 py-1.5 flex justify-around overflow-x-auto custom-scrollbar">
+      <button onclick="switchTab('comparison')" id="mob-nav-comparison" class="flex flex-col items-center gap-0.5 p-1 text-[11px] font-semibold text-agri-700">
+        <i data-lucide="layout-grid" class="w-4 h-4"></i> Comparison
+      </button>
+      <button onclick="switchTab('trends')" id="mob-nav-trends" class="flex flex-col items-center gap-0.5 p-1 text-[11px] font-medium text-slate-500">
+        <i data-lucide="trending-up" class="w-4 h-4"></i> AI Trends
+      </button>
+      <button onclick="switchTab('alerts')" id="mob-nav-alerts" class="flex flex-col items-center gap-0.5 p-1 text-[11px] font-medium text-slate-500">
+        <i data-lucide="bell" class="w-4 h-4"></i> Alerts
+      </button>
+      <button onclick="switchTab('profile')" id="mob-nav-profile" class="flex flex-col items-center gap-0.5 p-1 text-[11px] font-medium text-slate-500">
+        <i data-lucide="user" class="w-4 h-4"></i> Profile
+      </button>
+      <button onclick="switchTab('system')" id="mob-nav-system" class="flex flex-col items-center gap-0.5 p-1 text-[11px] font-medium text-slate-500">
+        <i data-lucide="activity" class="w-4 h-4"></i> Status
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- HERO KPI STATS BAR -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="glass-card p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+        <div class="absolute -right-3 -bottom-3 text-slate-100 group-hover:text-agri-50 transition-colors">
+          <i data-lucide="store" class="w-20 h-20"></i>
+        </div>
+        <div class="relative z-10">
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Monitored Mandis</p>
+          <p id="kpiMandiCount" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">12 Markets</p>
+          <div class="flex items-center gap-1 text-[11px] text-agri-700 font-medium mt-2">
+            <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
+            <span>6 Major Agri States</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+        <div class="absolute -right-3 -bottom-3 text-slate-100 group-hover:text-agri-50 transition-colors">
+          <i data-lucide="wheat" class="w-20 h-20"></i>
+        </div>
+        <div class="relative z-10">
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Active Crop Index</p>
+          <p id="kpiCropCount" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">19 Varieties</p>
+          <div class="flex items-center gap-1 text-[11px] text-emerald-600 font-medium mt-2">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i>
+            <span>Updated Today, 08:30 AM</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+        <div class="absolute -right-3 -bottom-3 text-slate-100 group-hover:text-agri-50 transition-colors">
+          <i data-lucide="zap" class="w-20 h-20"></i>
+        </div>
+        <div class="relative z-10">
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Max Arbitrage Profit</p>
+          <p id="kpiMaxProfit" class="text-2xl sm:text-3xl font-extrabold text-agri-700 mt-1">₹420 / Qtl</p>
+          <div class="flex items-center gap-1 text-[11px] text-agri-800 font-medium mt-2">
+            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
+            <span>Khanna vs Azadpur Mandi</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+        <div class="absolute -right-3 -bottom-3 text-slate-100 group-hover:text-agri-50 transition-colors">
+          <i data-lucide="shield-check" class="w-20 h-20"></i>
+        </div>
+        <div class="relative z-10">
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">System Pipeline</p>
+          <p class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">100% Online</p>
+          
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= TAB 1: PRICE COMPARISON DASHBOARD ================= -->
+    <section id="tabContent-comparison" class="space-y-6">
+      
+      <!-- Filter Controls Bar -->
+      <div class="glass-card p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+          
+          <!-- Search Bar -->
+          <div class="relative flex-1">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Search crop name, mandi, district or state..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-agri-500 focus:border-agri-500 text-slate-900 placeholder:text-slate-400">
+          </div>
+
+          <!-- Select Filters -->
+          <div class="flex flex-wrap sm:flex-nowrap gap-2 items-center">
+            
+            <!-- Category Filter -->
+            <select id="categoryFilter" onchange="applyFilters()" class="px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-agri-500">
+              <option value="">All Categories</option>
+              <option value="Cereals">🌾 Cereals</option>
+              <option value="Vegetables">🥔 Vegetables</option>
+              <option value="Fruits">🍎 Fruits</option>
+              <option value="Pulses">🫘 Pulses</option>
+              <option value="Oilseeds">🌻 Oilseeds</option>
+              <option value="Commercial">🌿 Commercial</option>
+            </select>
+
+            <!-- State Filter -->
+            <select id="stateFilter" onchange="applyFilters()" class="px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-agri-500">
+              <option value="">All States</option>
+              <option value="Punjab">Punjab</option>
+              <option value="Haryana">Haryana</option>
+              <option value="Uttar Pradesh">Uttar Pradesh</option>
+              <option value="Maharashtra">Maharashtra</option>
+              <option value="Karnataka">Karnataka</option>
+              <option value="Rajasthan">Rajasthan</option>
+            </select>
+
+            <!-- Sort By Filter -->
+            <select id="sortFilter" onchange="applyFilters()" class="px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-agri-500">
+              <option value="price-desc">Price: High to Low</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="crop-asc">Crop: A to Z</option>
+              <option value="qty-desc">Arrival: Highest Volume</option>
+            </select>
+
+            <!-- Layout Toggle -->
+            <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+              <button onclick="setViewMode('grid')" id="viewGridBtn" class="p-1.5 rounded-lg text-agri-800 bg-white shadow-sm transition">
+                <i data-lucide="grid" class="w-4 h-4"></i>
+              </button>
+              <button onclick="setViewMode('list')" id="viewListBtn" class="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition">
+                <i data-lucide="list" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Category Quick Badges -->
+        <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pt-2 border-t border-slate-100 text-xs">
+          <span class="text-slate-400 font-medium shrink-0">Quick Filter:</span>
+          <button onclick="quickFilterCategory('')" class="cat-pill px-3 py-1 rounded-full border border-agri-200 bg-agri-50 text-agri-800 font-medium text-xs whitespace-nowrap">All</button>
+          <button onclick="quickFilterCategory('Cereals')" class="cat-pill px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-600 font-medium text-xs whitespace-nowrap hover:bg-slate-50">🌾 Cereals</button>
+          <button onclick="quickFilterCategory('Vegetables')" class="cat-pill px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-600 font-medium text-xs whitespace-nowrap hover:bg-slate-50">🥔 Vegetables</button>
+          <button onclick="quickFilterCategory('Pulses')" class="cat-pill px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-600 font-medium text-xs whitespace-nowrap hover:bg-slate-50">🫘 Pulses</button>
+          <button onclick="quickFilterCategory('Fruits')" class="cat-pill px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-600 font-medium text-xs whitespace-nowrap hover:bg-slate-50">🍎 Fruits</button>
+          <button onclick="quickFilterCategory('Oilseeds')" class="cat-pill px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-600 font-medium text-xs whitespace-nowrap hover:bg-slate-50">🌻 Oilseeds</button>
+        </div>
+      </div>
+
+      <!-- Live Results Header & Actions -->
+      <div class="flex items-center justify-between text-xs font-semibold text-slate-500 px-1">
+        <div>Showing <span id="recordCountText" class="text-slate-900 font-bold">0</span> mandi price records</div>
+        <div class="text-slate-400 flex items-center gap-1">
+          <i data-lucide="info" class="w-3.5 h-3.5"></i> Click any card to run 3-Mandi Price Gap Arbitrage
+        </div>
+      </div>
+
+      <!-- Cards Grid Container -->
+      <div id="priceGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+
+      <!-- Alternative Table View Container -->
+      <div id="priceTableWrapper" class="glass-card rounded-2xl shadow-sm border border-slate-200 overflow-hidden hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-50/80 border-b border-slate-200 text-slate-600 uppercase text-[11px] font-bold tracking-wider">
+              <tr>
+                <th class="p-4">Crop</th>
+                <th class="p-4">Market & District</th>
+                <th class="p-4">State</th>
+                <th class="p-4">Min - Max Price</th>
+                <th class="p-4">Modal Price</th>
+                <th class="p-4">Daily Arrival</th>
+                <th class="p-4 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="priceTableBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================= TAB 2: PRICE TRENDS & AI INSIGHTS ================= -->
+    <section id="tabContent-trends" class="space-y-6 hidden">
+      
+      <!-- AI Arbitrage Banner -->
+      <div class="bg-gradient-to-r from-agri-900 via-agri-800 to-slate-900 text-white p-6 rounded-3xl shadow-xl relative overflow-hidden">
+        <div class="absolute right-0 top-0 bottom-0 opacity-10 pointer-events-none flex items-center pr-10">
+          <i data-lucide="sparkles" class="w-64 h-64"></i>
+        </div>
+        <div class="relative z-10 max-w-2xl space-y-3">
+          <span class="px-3 py-1 rounded-full bg-agri-500/30 text-agri-300 text-xs font-bold uppercase tracking-wider border border-agri-400/30">AI Recommendation Engine</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Best Mandi Selling Opportunity</h2>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            Based on current daily transport costs from <span class="text-white font-semibold">Ludhiana (Punjab)</span>, selling your <span class="text-amber-300 font-bold">Wheat</span> at <span class="text-emerald-300 font-bold">Karnal Grain Market</span> yields <span class="text-emerald-400 font-extrabold">₹280/Quintal extra net profit</span> after truck freight charges.
+          </p>
+          <div class="pt-2 flex flex-wrap items-center gap-3">
+            <button onclick="openArbitrageModal('Wheat')" class="px-4 py-2 bg-agri-500 hover:bg-agri-600 text-white font-bold rounded-xl text-xs transition shadow-lg shadow-agri-600/40 flex items-center gap-2">
+              <i data-lucide="calculator" class="w-4 h-4"></i> Run Wheat Arbitrage Calculation
+            </button>
+            <span class="text-xs text-slate-400">Confidence Score: <span class="text-emerald-400 font-bold">96.4%</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Interactive Chart Visualizer -->
+        <div class="lg:col-span-2 glass-card p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2">
+                <i data-lucide="line-chart" class="w-5 h-5 text-agri-600"></i>
+                <span id="chartCropTitle">Wheat — 30-Day Price Trend History</span>
+              </h3>
+              <p class="text-xs text-slate-500">Modal price comparison across major northern mandis (₹ / Quintal)</p>
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <select id="trendCropSelect" onchange="renderChart()" class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700">
+                <option value="Wheat">Wheat</option>
+                <option value="Rice">Rice</option>
+                <option value="Onion">Onion</option>
+                <option value="Potato">Potato</option>
+                <option value="Soybean">Soybean</option>
+              </select>
+              <select id="chartDaysSelect" onchange="renderChart()" class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700">
+                <option value="7">7 Days</option>
+                <option value="30" selected>30 Days</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- HTML5 Canvas Chart -->
+          <div class="w-full h-72 relative bg-slate-950/5 rounded-xl p-3 border border-slate-200">
+            <canvas id="trendCanvas" class="w-full h-full"></canvas>
+          </div>
+
+          <div class="flex items-center justify-center gap-6 text-xs font-semibold text-slate-600">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-agri-600"></span> Khanna Mandi (PB)
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-amber-500"></span> Karnal Market (HR)
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-sky-500"></span> Azadpur UP Link
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Forecast Cards -->
+        <div class="space-y-4">
+          <div class="glass-card p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+            <h4 class="font-bold text-slate-900 text-sm flex items-center justify-between">
+              <span>AI Market Signal</span>
+              <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">BULLISH</span>
+            </h4>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Wholesale arrivals for Wheat are projected to drop <span class="font-bold text-slate-800">12% next week</span> due to unseasonal rains. Modal prices are forecasted to gain <span class="text-agri-700 font-bold">₹80 - ₹120/Quintal</span> by mid-week.
+            </p>
+            <div class="p-3 bg-slate-50 rounded-xl text-xs space-y-1.5 border border-slate-100">
+              <div class="flex justify-between text-slate-500">
+                <span>Recommended Action:</span>
+                <span class="font-bold text-agri-800">HOLD Stock (3-5 Days)</span>
+              </div>
+              <div class="flex justify-between text-slate-500">
+                <span>Target Selling Price:</span>
+                <span class="font-bold text-slate-800">₹2,480 / Qtl</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top Demand Mandis -->
+          <div class="glass-card p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+            <h4 class="font-bold text-slate-900 text-sm">Top High-Demand Mandis Today</h4>
+            <div id="topDemandList" class="space-y-2 text-xs">
+              <!-- JS Injected -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= TAB 3: PRICE ALERTS & WATCHLIST ================= -->
+    <section id="tabContent-alerts" class="space-y-6 hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Create Alert Form -->
+        <div class="glass-card p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+          <div>
+            <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2">
+              <i data-lucide="bell-plus" class="w-5 h-5 text-agri-600"></i>
+              <span>Set Custom Price Alert</span>
+            </h3>
+            <p class="text-xs text-slate-500">Get notified when a mandi price crosses your trigger target</p>
+          </div>
+
+          <form id="createAlertForm" onsubmit="handleCreateAlert(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Select Crop</label>
+              <select id="alertCropSelect" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-agri-500">
+                <option value="Wheat">Wheat</option>
+                <option value="Rice">Rice</option>
+                <option value="Onion">Onion</option>
+                <option value="Potato">Potato</option>
+                <option value="Soybean">Soybean</option>
+                <option value="Mustard">Mustard</option>
+                <option value="Cotton">Cotton</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Specific Mandi (Optional)</label>
+              <select id="alertMandiSelect" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-agri-500">
+                <option value="All Mandis">Any Nearby Mandi</option>
+                <option value="Khanna Mandi">Khanna Mandi (Punjab)</option>
+                <option value="Karnal Grain Market">Karnal Grain Market (Haryana)</option>
+                <option value="Lasalgaon Mandi">Lasalgaon Mandi (Maharashtra)</option>
+                <option value="Agra APMC">Agra APMC (Uttar Pradesh)</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Condition</label>
+                <select id="alertConditionSelect" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-agri-500">
+                  <option value="ABOVE">Price Rises Above (≥)</option>
+                  <option value="BELOW">Price Drops Below (≤)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Target Price (₹/Qtl)</label>
+                <input type="number" id="alertTargetPrice" required placeholder="e.g. 2400" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-agri-500">
+              </div>
+            </div>
+
+            <button type="submit" class="w-full py-2.5 bg-agri-600 hover:bg-agri-700 text-white font-bold rounded-xl text-xs transition shadow-md shadow-agri-600/30 flex items-center justify-center gap-2">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i> Create Price Alert
+            </button>
+          </form>
+        </div>
+
+        <!-- Active Alerts List -->
+        <div class="lg:col-span-2 glass-card p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2">
+              <i data-lucide="sliders" class="w-5 h-5 text-agri-600"></i>
+              <span>Your Active Price Triggers</span>
+            </h3>
+            <span class="text-xs text-slate-500">Total Active: <span id="activeAlertCount" class="font-bold text-slate-800">3</span></span>
+          </div>
+
+          <div id="alertsList" class="space-y-3">
+            <!-- JS Injected Alerts -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= TAB 4: FARMER PROFILE ================= -->
+    <section id="tabContent-profile" class="space-y-6 hidden">
+      <div class="max-w-4xl mx-auto glass-card p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-200 space-y-6">
+        
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
+          <div class="flex items-center gap-4">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80" alt="Rajesh Kumar" class="w-16 h-16 rounded-2xl object-cover ring-4 ring-agri-500/20 shadow-md">
+            <div>
+              <h2 class="text-xl font-extrabold text-slate-900">Rajesh Kumar</h2>
+              <p class="text-xs text-slate-500">Progressive Farmer • Member ID: AGRI-PB-8841</p>
+              <div class="mt-1 flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">Verified Farmer</span>
+                <span class="text-xs text-slate-400">Ludhiana, Punjab</span>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="saveProfile()" class="px-5 py-2.5 bg-agri-600 hover:bg-agri-700 text-white font-bold rounded-xl text-xs transition shadow-md shadow-agri-600/30 flex items-center gap-2">
+            <i data-lucide="save" class="w-4 h-4"></i> Save Profile Settings
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- Farm & Location Details -->
+          <div class="space-y-4">
+            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider text-agri-800">Farm & Geographic Profile</h3>
+            
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Primary State</label>
+              <select id="profState" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium">
+                <option value="Punjab" selected>Punjab</option>
+                <option value="Haryana">Haryana</option>
+                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                <option value="Maharashtra">Maharashtra</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">District</label>
+              <input type="text" id="profDistrict" value="Ludhiana" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Land Size (Acres)</label>
+                <input type="number" id="profLand" value="12.5" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Primary Crop</label>
+                <select id="profCrop" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium">
+                  <option value="Wheat" selected>Wheat</option>
+                  <option value="Paddy">Paddy</option>
+                  <option value="Cotton">Cotton</option>
+                  <option value="Mustard">Mustard</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notifications & Alerts Channels -->
+          <div class="space-y-4">
+            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider text-agri-800">Alert Notification Channels</h3>
+            
+            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+              <label class="flex items-center justify-between text-xs font-semibold text-slate-700 cursor-pointer">
+                <span class="flex items-center gap-2">
+                  <i data-lucide="mail" class="w-4 h-4 text-slate-500"></i>
+                  Email Price Digest
+                </span>
+                <input type="checkbox" checked class="w-4 h-4 accent-agri-600 rounded">
+              </label>
+
+              <label class="flex items-center justify-between text-xs font-semibold text-slate-700 cursor-pointer">
+                <span class="flex items-center gap-2">
+                  <i data-lucide="message-square" class="w-4 h-4 text-emerald-600"></i>
+                  WhatsApp Daily Mandi Rates
+                </span>
+                <input type="checkbox" checked class="w-4 h-4 accent-agri-600 rounded">
+              </label>
+
+              <label class="flex items-center justify-between text-xs font-semibold text-slate-700 cursor-pointer">
+                <span class="flex items-center gap-2">
+                  <i data-lucide="phone" class="w-4 h-4 text-sky-600"></i>
+                  SMS Urgent Price Spikes
+                </span>
+                <input type="checkbox" class="w-4 h-4 accent-agri-600 rounded">
+              </label>
+            </div>
+
+            <!-- Favorite Mandi Watchlist Checklist -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Favorite Mandis Watchlist</label>
+              <div class="p-3 bg-white border border-slate-200 rounded-xl space-y-1.5 text-xs max-h-32 overflow-y-auto custom-scrollbar">
+                <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-agri-600"> Khanna Mandi (Ludhiana, PB)</label>
+                <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-agri-600"> Karnal Grain Market (Karnal, HR)</label>
+                <label class="flex items-center gap-2"><input type="checkbox" checked class="accent-agri-600"> Azadpur UP Link (G.B. Nagar, UP)</label>
+                <label class="flex items-center gap-2"><input type="checkbox" class="accent-agri-600"> Lasalgaon Mandi (Nashik, MH)</label>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= TAB 5: SYSTEM STATUS & PROVIDER ================= -->
+    <section id="tabContent-system" class="space-y-6 hidden">
+      
+      <!-- Provider Mode Selector Box -->
+      <div class="glass-card p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2">
+              <i data-lucide="server" class="w-5 h-5 text-agri-600"></i>
+              <span>AGRIPrice Data Provider Engine</span>
+            </h3>
+            <p class="text-xs text-slate-500">Toggle between simulated seed data and data.gov.in / AGMARKNET live provider</p>
+          </div>
+
+          <!-- Interactive Provider Toggle -->
+          <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button onclick="setProviderMode('demo')" id="providerDemoBtn" class="px-4 py-1.5 text-xs font-bold rounded-lg transition-all text-agri-800 bg-white shadow-sm">
+              Demo Seed Mode
+            </button>
+            <button onclick="setProviderMode('government')" id="providerGovBtn" class="px-4 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-500 hover:text-slate-800">
+              AGMARKNET API Mode
+            </button>
+          </div>
+        </div>
+
+        <div id="providerModeInfo" class="p-4 rounded-xl text-xs leading-relaxed bg-emerald-50 text-emerald-900 border border-emerald-200">
+          <strong>Active Mode: Demo Data Provider.</strong> Using high-resolution synthetic price records populated via Prisma schema seed across 12 primary mandis in PB, HR, UP, MH, KA, and RJ.
+        </div>
+      </div>
+
+      <!-- Sync Logs Table -->
+      <div class="glass-card p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <h4 class="font-bold text-slate-900 text-sm">Recent ApiSyncLog History</h4>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+              <tr>
+                <th class="p-3">Sync ID</th>
+                <th class="p-3">Provider</th>
+                <th class="p-3">Records Injected</th>
+                <th class="p-3">Status</th>
+                <th class="p-3">Timestamp</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 font-mono text-[11px] text-slate-700">
+              <tr>
+                <td class="p-3 text-slate-400">sync_9941a</td>
+                <td class="p-3 font-semibold text-slate-900">Demo Price Provider</td>
+                <td class="p-3 font-bold text-agri-700">60 rows</td>
+                <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-sans font-bold">SUCCESS</span></td>
+                <td class="p-3">2026-10-24 08:30:00</td>
+              </tr>
+              <tr>
+                <td class="p-3 text-slate-400">sync_8832b</td>
+                <td class="p-3 font-semibold text-slate-900">AGMARKNET Govt API</td>
+                <td class="p-3 text-slate-400">0 rows</td>
+                <td class="p-3"><span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-sans font-bold">FALLBACK_DEMO</span></td>
+                <td class="p-3">2026-10-24 08:00:00</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ================= ARBITRAGE MODAL POPUP ================= -->
+  <div id="arbitrageModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+    <div class="glass-card bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-agri-900 to-agri-800 text-white p-5 flex items-center justify-between">
+        <div>
+          <div class="text-xs font-semibold text-agri-300 uppercase tracking-wider">3-Mandi Price Arbitrage Analysis</div>
+          <h3 id="modalCropTitle" class="text-xl font-extrabold mt-0.5">Wheat Arbitrage Comparison</h3>
+        </div>
+        <button onclick="closeArbitrageModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-5 max-h-[80vh] overflow-y-auto custom-scrollbar">
+        
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Comparing live modal prices for <span id="modalCropNameInline" class="font-bold text-slate-900">Wheat</span> across top 3 neighboring regional mandis to identify maximum farmer profit margins.
+        </p>
+
+        <!-- Mandis Comparison Cards -->
+        <div id="modalMandiCards" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <!-- JS Injected -->
+        </div>
+
+        <!-- Profit Extra Calculation Box -->
+        <div class="p-4 bg-agri-50 border border-agri-200 rounded-2xl flex items-center justify-between">
+          <div class="space-y-0.5">
+            <span class="text-xs font-semibold text-agri-800">Potential Extra Earnings (50 Quintals Load)</span>
+            <div id="modalProfitDetail" class="text-xs text-slate-600">By transporting to highest paying mandi</div>
+          </div>
+          <div id="modalTotalExtraProfit" class="text-xl sm:text-2xl font-extrabold text-agri-700">
+            +₹14,000 Extra
+          </div>
+        </div>
+
+        <!-- Price History Table -->
+        <div>
+          <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">7-Day Price History Log</h4>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 text-slate-600 uppercase font-semibold">
+                <tr>
+                  <th class="p-2.5">Date</th>
+                  <th class="p-2.5">Khanna (PB)</th>
+                  <th class="p-2.5">Karnal (HR)</th>
+                  <th class="p-2.5">Azadpur (UP)</th>
+                </tr>
+              </thead>
+              <tbody id="modalHistoryTable" class="divide-y divide-slate-100 text-slate-700">
+                <!-- JS Injected -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
+        <button onclick="closeArbitrageModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl text-xs transition">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- APPLICATION JAVASCRIPT LOGIC -->
+  <script>
+    // --- DEMO DATABASE STATE ---
+    const MOCK_PRICES = [
+      { id: '1', cropName: 'Wheat', category: 'Cereals', marketName: 'Khanna Mandi', district: 'Ludhiana', state: 'Punjab', minPrice: 2280, maxPrice: 2420, modalPrice: 2350, arrivalQty: 450, change: 2.1, source: 'Demo Data' },
+      { id: '2', cropName: 'Wheat', category: 'Cereals', marketName: 'Karnal Grain Market', district: 'Karnal', state: 'Haryana', minPrice: 2450, maxPrice: 2680, modalPrice: 2630, arrivalQty: 320, change: 4.5, source: 'Demo Data' },
+      { id: '3', cropName: 'Wheat', category: 'Cereals', marketName: 'Azadpur UP Link', district: 'G.B. Nagar', state: 'Uttar Pradesh', minPrice: 2300, maxPrice: 2510, modalPrice: 2460, arrivalQty: 510, change: 1.2, source: 'Demo Data' },
+      { id: '4', cropName: 'Rice', category: 'Cereals', marketName: 'Karnal Grain Market', district: 'Karnal', state: 'Haryana', minPrice: 3050, maxPrice: 3220, modalPrice: 3120, arrivalQty: 280, change: 1.4, source: 'Demo Data' },
+      { id: '5', cropName: 'Paddy', category: 'Cereals', marketName: 'Jalandhar City Mandi', district: 'Jalandhar', state: 'Punjab', minPrice: 2100, maxPrice: 2250, modalPrice: 2180, arrivalQty: 600, change: -0.5, source: 'Demo Data' },
+      { id: '6', cropName: 'Onion', category: 'Vegetables', marketName: 'Lasalgaon Mandi', district: 'Nashik', state: 'Maharashtra', minPrice: 1650, maxPrice: 1920, modalPrice: 1800, arrivalQty: 850, change: -2.3, source: 'Demo Data' },
+      { id: '7', cropName: 'Onion', category: 'Vegetables', marketName: 'Vashi APMC', district: 'Thane', state: 'Maharashtra', minPrice: 1850, maxPrice: 2150, modalPrice: 2050, arrivalQty: 720, change: 1.8, source: 'Demo Data' },
+      { id: '8', cropName: 'Potato', category: 'Vegetables', marketName: 'Agra APMC', district: 'Agra', state: 'Uttar Pradesh', minPrice: 1300, maxPrice: 1520, modalPrice: 1450, arrivalQty: 920, change: 0.8, source: 'Demo Data' },
+      { id: '9', cropName: 'Soybean', category: 'Oilseeds', marketName: 'Kota Grain Mandi', district: 'Kota', state: 'Rajasthan', minPrice: 4200, maxPrice: 4650, modalPrice: 4500, arrivalQty: 310, change: 3.1, source: 'Demo Data' },
+      { id: '10', cropName: 'Mustard', category: 'Oilseeds', marketName: 'Sri Ganganagar Mandi', district: 'Sri Ganganagar', state: 'Rajasthan', minPrice: 5100, maxPrice: 5520, modalPrice: 5400, arrivalQty: 210, change: 1.1, source: 'Demo Data' },
+      { id: '11', cropName: 'Cotton', category: 'Commercial', marketName: 'Sirsa Mandi', district: 'Sirsa', state: 'Haryana', minPrice: 6800, maxPrice: 7300, modalPrice: 7100, arrivalQty: 180, change: -1.2, source: 'Demo Data' },
+      { id: '12', cropName: 'Gram', category: 'Pulses', marketName: 'Hubballi APMC', district: 'Dharwad', state: 'Karnataka', minPrice: 5800, maxPrice: 6250, modalPrice: 6100, arrivalQty: 140, change: 0.5, source: 'Demo Data' },
+    ];
+
+    let ACTIVE_ALERTS = [
+      { id: 'a1', crop: 'Wheat', mandi: 'Karnal Grain Market', condition: 'ABOVE', target: 2500, active: true },
+      { id: 'a2', crop: 'Onion', mandi: 'Lasalgaon Mandi', condition: 'BELOW', target: 1700, active: true },
+      { id: 'a3', crop: 'Soybean', mandi: 'Kota Grain Mandi', condition: 'ABOVE', target: 4400, active: true },
+    ];
+
+    let currentViewMode = 'grid';
+    let currentProvider = 'demo';
+
+    // --- APPLICATION INIT ---
+    window.onload = function() {
+      lucide.createIcons();
+      applyFilters();
+      renderAlertsList();
+      renderTopDemand();
+      renderChart();
+    };
+
+    // --- TAB SWITCHING LOGIC ---
+    function switchTab(tabId) {
+      const tabs = ['comparison', 'trends', 'alerts', 'profile', 'system'];
+      tabs.forEach(id => {
+        document.getElementById('tabContent-' + id).classList.add('hidden');
+        
+        // Desktop nav state
+        const btn = document.getElementById('nav-' + id);
+        if (btn) {
+          btn.className = "tab-btn flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all text-slate-600 hover:text-slate-900";
+        }
+        // Mobile nav state
+        const mobBtn = document.getElementById('mob-nav-' + id);
+        if (mobBtn) {
+          mobBtn.className = "flex flex-col items-center gap-0.5 p-1 text-[11px] font-medium text-slate-500";
+        }
+      });
+
+      // Show selected
+      document.getElementById('tabContent-' + tabId).classList.remove('hidden');
+      
+      const activeBtn = document.getElementById('nav-' + tabId);
+      if (activeBtn) {
+        activeBtn.className = "tab-btn flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all text-agri-800 bg-white shadow-sm";
+      }
+      const activeMobBtn = document.getElementById('mob-nav-' + tabId);
+      if (activeMobBtn) {
+        activeMobBtn.className = "flex flex-col items-center gap-0.5 p-1 text-[11px] font-semibold text-agri-700";
+      }
+
+      if (tabId === 'trends') {
+        setTimeout(renderChart, 100);
+      }
+    }
+
+    // --- FILTER & RENDER ENGINE ---
+    function applyFilters() {
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
+      const category = document.getElementById('categoryFilter').value;
+      const state = document.getElementById('stateFilter').value;
+      const sortBy = document.getElementById('sortFilter').value;
+
+      let filtered = MOCK_PRICES.filter(item => {
+        const matchesQuery = item.cropName.toLowerCase().includes(query) ||
+                             item.marketName.toLowerCase().includes(query) ||
+                             item.district.toLowerCase().includes(query) ||
+                             item.state.toLowerCase().includes(query);
+        const matchesCategory = !category || item.category === category;
+        const matchesState = !state || item.state === state;
+        return matchesQuery && matchesCategory && matchesState;
+      });
+
+      // Sorting
+      if (sortBy === 'price-desc') filtered.sort((a, b) => b.modalPrice - a.modalPrice);
+      if (sortBy === 'price-asc') filtered.sort((a, b) => a.modalPrice - b.modalPrice);
+      if (sortBy === 'crop-asc') filtered.sort((a, b) => a.cropName.localeCompare(b.cropName));
+      if (sortBy === 'qty-desc') filtered.sort((a, b) => b.arrivalQty - a.arrivalQty);
+
+      document.getElementById('recordCountText').innerText = filtered.length;
+
+      if (currentViewMode === 'grid') {
+        renderGrid(filtered);
+      } else {
+        renderTable(filtered);
+      }
+    }
+
+    function quickFilterCategory(cat) {
+      document.getElementById('categoryFilter').value = cat;
+      applyFilters();
+    }
+
+    function setViewMode(mode) {
+      currentViewMode = mode;
+      if (mode === 'grid') {
+        document.getElementById('priceGrid').classList.remove('hidden');
+        document.getElementById('priceTableWrapper').classList.add('hidden');
+        document.getElementById('viewGridBtn').className = "p-1.5 rounded-lg text-agri-800 bg-white shadow-sm transition";
+        document.getElementById('viewListBtn').className = "p-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition";
+      } else {
+        document.getElementById('priceGrid').classList.add('hidden');
+        document.getElementById('priceTableWrapper').classList.remove('hidden');
+        document.getElementById('viewGridBtn').className = "p-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition";
+        document.getElementById('viewListBtn').className = "p-1.5 rounded-lg text-agri-800 bg-white shadow-sm transition";
+      }
+      applyFilters();
+    }
+
+    // Render Grid View Cards
+    function renderGrid(items) {
+      const container = document.getElementById('priceGrid');
+      if (items.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-12 text-center text-slate-400 space-y-2">
+            <i data-lucide="search-x" class="w-12 h-12 mx-auto"></i>
+            <p class="font-bold text-slate-700">No mandi records match your search criteria</p>
+            <p class="text-xs">Try clearing filters or searching for another crop.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = items.map(item => `
+        <div onclick="openArbitrageModal('${item.cropName}')" class="glass-card p-5 rounded-2xl shadow-sm hover:shadow-xl hover:border-agri-300 transition-all cursor-pointer group space-y-4">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-agri-50 text-agri-800 border border-agri-200">${item.category}</span>
+              <h3 class="font-extrabold text-lg text-slate-900 mt-2 group-hover:text-agri-700 transition-colors">${item.cropName}</h3>
+              <p class="text-xs font-medium text-slate-500 flex items-center gap-1 mt-0.5">
+                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-slate-400"></i> ${item.marketName}, ${item.state}
+              </p>
+            </div>
+            <span class="text-xs font-bold px-2 py-1 rounded-lg ${item.change >= 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">
+              ${item.change >= 0 ? '▲ +' : '▼ '}${item.change}%
+            </span>
+          </div>
+
+          <div class="p-3 bg-slate-50/80 rounded-xl space-y-2 border border-slate-100">
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-slate-500">Modal Price:</span>
+              <span class="text-lg font-extrabold text-agri-700">₹${item.modalPrice.toLocaleString()} <span class="text-xs font-medium text-slate-400">/ Qtl</span></span>
+            </div>
+            <div class="flex items-center justify-between text-[11px] text-slate-500 border-t border-slate-200/60 pt-1.5">
+              <span>Min-Max: ₹${item.minPrice} - ₹${item.maxPrice}</span>
+              <span>Arrivals: ${item.arrivalQty} Tonnes</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between text-xs pt-1">
+            <span class="text-[10px] text-slate-400">Source: ${item.source}</span>
+            <span class="font-bold text-agri-700 group-hover:underline flex items-center gap-1">
+              Run Arbitrage <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </span>
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    // Render Table View Rows
+    function renderTable(items) {
+      const container = document.getElementById('priceTableBody');
+      container.innerHTML = items.map(item => `
+        <tr class="hover:bg-slate-50/80 transition-colors">
+          <td class="p-4 font-bold text-slate-900">${item.cropName} <span class="block text-[10px] font-normal text-slate-400">${item.category}</span></td>
+          <td class="p-4 text-slate-700 font-medium">${item.marketName} <span class="block text-xs text-slate-400">${item.district}</span></td>
+          <td class="p-4 text-slate-600">${item.state}</td>
+          <td class="p-4 text-slate-600">₹${item.minPrice} - ₹${item.maxPrice}</td>
+          <td class="p-4 font-extrabold text-agri-700 text-base">₹${item.modalPrice.toLocaleString()}</td>
+          <td class="p-4 text-slate-600">${item.arrivalQty} Tonnes</td>
+          <td class="p-4 text-right">
+            <button onclick="openArbitrageModal('${item.cropName}')" class="px-3 py-1.5 bg-agri-50 hover:bg-agri-100 text-agri-800 font-bold rounded-lg text-xs transition border border-agri-200">
+              Compare
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // --- ARBITRAGE MODAL LOGIC ---
+    function openArbitrageModal(cropName) {
+      const modal = document.getElementById('arbitrageModal');
+      document.getElementById('modalCropTitle').innerText = `${cropName} Arbitrage & Price Gap`;
+      document.getElementById('modalCropNameInline').innerText = cropName;
+
+      // Filter matching mandis
+      let matches = MOCK_PRICES.filter(p => p.cropName.toLowerCase() === cropName.toLowerCase());
+      if (matches.length < 3) {
+        // Fallback synthetic matches
+        matches = [
+          { marketName: 'Khanna Mandi (PB)', modalPrice: 2350, state: 'Punjab' },
+          { marketName: 'Karnal Market (HR)', modalPrice: 2630, state: 'Haryana' },
+          { marketName: 'Azadpur UP Link', modalPrice: 2460, state: 'Uttar Pradesh' }
+        ];
+      }
+
+      // Sort by price high to low
+      matches.sort((a, b) => b.modalPrice - a.modalPrice);
+      const topMarket = matches[0];
+      const lowestMarket = matches[matches.length - 1];
+      const diff = topMarket.modalPrice - lowestMarket.modalPrice;
+
+      // Render Mandi cards
+      document.getElementById('modalMandiCards').innerHTML = matches.slice(0, 3).map((m, idx) => `
+        <div class="p-4 rounded-2xl ${idx === 0 ? 'bg-agri-50 border-2 border-agri-400 shadow-sm' : 'bg-slate-50 border border-slate-200'} space-y-1">
+          <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider ${idx === 0 ? 'text-agri-800' : 'text-slate-400'}">
+            <span>${idx === 0 ? '👑 Highest Mandi' : 'Regional Mandi'}</span>
+            <span>${m.state}</span>
+          </div>
+          <div class="font-extrabold text-sm text-slate-900">${m.marketName}</div>
+          <div class="text-lg font-black text-agri-700">₹${m.modalPrice} <span class="text-xs font-normal text-slate-400">/ Qtl</span></div>
+        </div>
+      `).join('');
+
+      // Profit detail calculation
+      document.getElementById('modalProfitDetail').innerText = `Selling at ${topMarket.marketName} vs ${lowestMarket.marketName} (+₹${diff}/Quintal)`;
+      document.getElementById('modalTotalExtraProfit').innerText = `+₹${(diff * 50).toLocaleString()} Extra`;
+
+      // Render 7-day history table
+      const historyRows = [
+        { date: 'Today', p1: topMarket.modalPrice, p2: topMarket.modalPrice - 80, p3: topMarket.modalPrice - 140 },
+        { date: 'Yesterday', p1: topMarket.modalPrice - 20, p2: topMarket.modalPrice - 90, p3: topMarket.modalPrice - 150 },
+        { date: '2 Days Ago', p1: topMarket.modalPrice - 50, p2: topMarket.modalPrice - 100, p3: topMarket.modalPrice - 160 },
+        { date: '3 Days Ago', p1: topMarket.modalPrice - 30, p2: topMarket.modalPrice - 110, p3: topMarket.modalPrice - 130 },
+      ];
+
+      document.getElementById('modalHistoryTable').innerHTML = historyRows.map(r => `
+        <tr>
+          <td class="p-2.5 font-medium text-slate-900">${r.date}</td>
+          <td class="p-2.5 font-bold text-agri-700">₹${r.p1}</td>
+          <td class="p-2.5">₹${r.p2}</td>
+          <td class="p-2.5">₹${r.p3}</td>
+        </tr>
+      `).join('');
+
+      modal.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeArbitrageModal() {
+      document.getElementById('arbitrageModal').classList.add('hidden');
+    }
+
+    // --- CANVAS PRICE TREND CHART ---
+    function renderChart() {
+      const canvas = document.getElementById('trendCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      
+      // Resize canvas to match display size
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+
+      const width = canvas.width;
+      const height = canvas.height;
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Simple mock dataset for Wheat 30 days
+      const points = [
+        2200, 2220, 2210, 2250, 2280, 2270, 2300, 2320, 2310, 2350,
+        2340, 2380, 2400, 2390, 2420, 2450, 2430, 2480, 2500, 2490,
+        2520, 2550, 2580, 2600, 2590, 2620, 2630, 2610, 2640, 2650
+      ];
+
+      const min = 2100;
+      const max = 2700;
+      const padding = 30;
+
+      // Draw Grid Lines
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = padding + (height - padding * 2) * (i / 4);
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(width - padding, y);
+        ctx.stroke();
+      }
+
+      // Plot Smooth Trend Line
+      ctx.beginPath();
+      ctx.strokeStyle = '#16a34a';
+      ctx.lineWidth = 3;
+
+      const stepX = (width - padding * 2) / (points.length - 1);
+
+      points.forEach((val, idx) => {
+        const x = padding + idx * stepX;
+        const y = height - padding - ((val - min) / (max - min)) * (height - padding * 2);
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // Fill Gradient under line
+      ctx.lineTo(width - padding, height - padding);
+      ctx.lineTo(padding, height - padding);
+      ctx.closePath();
+
+      const gradient = ctx.createLinearGradient(0, 0, 0, height);
+      gradient.addColorStop(0, 'rgba(34, 197, 94, 0.25)');
+      gradient.addColorStop(1, 'rgba(34, 197, 94, 0.0)');
+      ctx.fillStyle = gradient;
+      ctx.fill();
+    }
+
+    // --- ALERTS ENGINE ---
+    function renderAlertsList() {
+      const container = document.getElementById('alertsList');
+      document.getElementById('activeAlertCount').innerText = ACTIVE_ALERTS.length;
+      document.getElementById('navAlertBadge').innerText = ACTIVE_ALERTS.length;
+
+      if (ACTIVE_ALERTS.length === 0) {
+        container.innerHTML = `<div class="text-xs text-slate-400 p-4 text-center">No active alerts configured.</div>`;
+        return;
+      }
+
+      container.innerHTML = ACTIVE_ALERTS.map(a => `
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+          <div class="space-y-0.5">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-900 text-sm">${a.crop}</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded ${a.condition === 'ABOVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                ${a.condition === 'ABOVE' ? '≥ Price Rises Above' : '≤ Price Drops Below'}
+              </span>
+            </div>
+            <p class="text-xs text-slate-500">${a.mandi} • Target Trigger: <strong class="text-slate-800">₹${a.target} / Qtl</strong></p>
+          </div>
+          <button onclick="deleteAlert('${a.id}')" class="p-2 text-slate-400 hover:text-rose-600 transition">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function handleCreateAlert(e) {
+      e.preventDefault();
+      const crop = document.getElementById('alertCropSelect').value;
+      const mandi = document.getElementById('alertMandiSelect').value;
+      const condition = document.getElementById('alertConditionSelect').value;
+      const target = Number(document.getElementById('alertTargetPrice').value);
+
+      ACTIVE_ALERTS.push({
+        id: 'a_' + Date.now(),
+        crop,
+        mandi,
+        condition,
+        target,
+        active: true
+      });
+
+      renderAlertsList();
+      showToast(`Alert created for ${crop} at ₹${target}/Qtl!`);
+      document.getElementById('createAlertForm').reset();
+    }
+
+    function deleteAlert(id) {
+      ACTIVE_ALERTS = ACTIVE_ALERTS.filter(a => a.id !== id);
+      renderAlertsList();
+      showToast('Price alert removed');
+    }
+
+    // --- TOP DEMAND SIDEBAR ---
+    function renderTopDemand() {
+      const container = document.getElementById('topDemandList');
+      const top = [
+        { crop: 'Wheat', market: 'Karnal Grain Market', price: '₹2,630', gain: '+4.5%' },
+        { crop: 'Soybean', market: 'Kota Grain Mandi', price: '₹4,500', gain: '+3.1%' },
+        { crop: 'Mustard', market: 'Sri Ganganagar', price: '₹5,400', gain: '+1.1%' }
+      ];
+
+      container.innerHTML = top.map(t => `
+        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
+          <div>
+            <div class="font-bold text-slate-900">${t.crop}</div>
+            <div class="text-[10px] text-slate-500">${t.market}</div>
+          </div>
+          <div class="text-right">
+            <div class="font-bold text-agri-700">${t.price}</div>
+            <div class="text-[10px] text-emerald-600 font-bold">${t.gain}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // --- PROVIDER MODE TOGGLE SIMULATION ---
+    function setProviderMode(mode) {
+      currentProvider = mode;
+      const demoBtn = document.getElementById('providerDemoBtn');
+      const govBtn = document.getElementById('providerGovBtn');
+      const info = document.getElementById('providerModeInfo');
+      const tag = document.getElementById('headerProviderTag');
+
+      if (mode === 'demo') {
+        demoBtn.className = "px-4 py-1.5 text-xs font-bold rounded-lg transition-all text-agri-800 bg-white shadow-sm";
+        govBtn.className = "px-4 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-500 hover:text-slate-800";
+        info.className = "p-4 rounded-xl text-xs leading-relaxed bg-emerald-50 text-emerald-900 border border-emerald-200";
+        info.innerHTML = `<strong>Active Mode: Demo Data Provider.</strong> Using high-resolution synthetic price records populated via Prisma schema seed across 12 primary mandis in PB, HR, UP, MH, KA, and RJ.`;
+        tag.innerText = "Source: Demo Data";
+        showToast("Switched to Demo Seed Provider");
+      } else {
+        govBtn.className = "px-4 py-1.5 text-xs font-bold rounded-lg transition-all text-agri-800 bg-white shadow-sm";
+        demoBtn.className = "px-4 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-500 hover:text-slate-800";
+        info.className = "p-4 rounded-xl text-xs leading-relaxed bg-amber-50 text-amber-900 border border-amber-200";
+        info.innerHTML = `<strong>Active Mode: AGMARKNET API (Fallback Active).</strong> Validating AGRI_API_KEY environment variable. Since key is unconfigured, automatic graceful fallback to Demo Data Provider was executed with zero service disruption.`;
+        tag.innerText = "Source: AGMARKNET API (Fallback Demo)";
+        showToast("AGMARKNET API mode validated (Fallback active)");
+      }
+    }
+
+    // --- USER PROFILE SAVING ---
+    function saveProfile() {
+      showToast("Farmer profile settings updated successfully!");
+    }
+
+    // --- TOAST FEEDBACK SYSTEM ---
+    function showToast(msg) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = "pointer-events-auto bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-slate-700 text-xs font-bold flex items-center gap-2 animate-in slide-in-from-bottom-5 duration-200";
+      toast.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4 text-agri-400"></i> ${msg}`;
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'transition-opacity');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
